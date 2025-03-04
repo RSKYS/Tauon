@@ -4850,10 +4850,7 @@ class Menu:
 				else:
 					fx = self.deco()
 
-				if fx[2] is not None:
-					label = fx[2]
-				else:
-					label = self.items[i].title
+				label = fx[2] if fx[2] is not None else self.items[i].title
 
 				# Show text as disabled if disable_test() passes
 				if self.is_item_disabled(self.items[i]):
@@ -5005,10 +5002,7 @@ class Menu:
 								else:
 									self.subs[self.sub_active][w].func()
 
-						if fx[2] is not None:
-							label = fx[2]
-						else:
-							label = self.subs[self.sub_active][w].title
+						label = fx[2] if fx[2] is not None else self.subs[self.sub_active][w].title
 
 						# Show text as disabled if disable_test() passes
 						if self.is_item_disabled(self.subs[self.sub_active][w]):
@@ -6713,10 +6707,7 @@ class Tauon:
 		p = self.ddt.text((x + int(w / 2), y + 3 * self.gui.scale, 2), text, self.colours.menu_text, 312, bg=self.colours.menu_background)
 
 	def menu_standard_or_grey(self, bool: bool):
-		if bool:
-			line_colour = self.colours.menu_text
-		else:
-			line_colour = self.colours.menu_text_disabled
+		line_colour = self.colours.menu_text if bool else self.colours.menu_text_disabled
 
 		return [line_colour, self.colours.menu_background, None]
 
@@ -7219,12 +7210,9 @@ class Tauon:
 	def toggle_lyrics_show(self, _) -> bool:
 		return not self.gui.combo_mode
 
-	def toggle_side_art_deco(self):
+	def toggle_side_art_deco(self) -> list[list[int] | str | None]:
 		colour = self.colours.menu_text
-		if self.prefs.show_side_lyrics_art_panel:
-			line = _("Hide Metadata Panel")
-		else:
-			line = _("Show Metadata Panel")
+		line = _("Hide Metadata Panel") if self.prefs.show_side_lyrics_art_panel else _("Show Metadata Panel")
 
 		if self.gui.combo_mode:
 			colour = self.colours.menu_text_disabled
@@ -7233,10 +7221,7 @@ class Tauon:
 
 	def toggle_lyrics_panel_position_deco(self) -> list[list[int] | str | None]:
 		colour = self.colours.menu_text
-		if self.prefs.lyric_metadata_panel_top:
-			line = _("Panel Below Lyrics")
-		else:
-			line = _("Panel Above Lyrics")
+		line = _("Panel Below Lyrics") if self.prefs.lyric_metadata_panel_top else _("Panel Above Lyrics")
 
 		if self.gui.combo_mode or not self.prefs.show_side_lyrics_art_panel:
 			colour = self.colours.menu_text_disabled
@@ -7256,27 +7241,18 @@ class Tauon:
 		colour = self.colours.menu_text
 
 		if self.gui.combo_mode:
-			if self.prefs.show_lyrics_showcase:
-				line = _("Hide Lyrics")
-			else:
-				line = _("Show Lyrics")
+			line = _("Hide Lyrics") if self.prefs.show_lyrics_showcase else _("Show Lyrics")
 			if not track_object or (track_object.lyrics == "" and not self.timed_lyrics_ren.generate(track_object)):
 				colour = self.colours.menu_text_disabled
 			return [colour, self.colours.menu_background, line]
 
 		if self.prefs.side_panel_layout == 1:  # and self.prefs.show_side_art:
-			if self.prefs.show_lyrics_side:
-				line = _("Hide Lyrics")
-			else:
-				line = _("Show Lyrics")
+			line = _("Hide Lyrics") if self.prefs.show_lyrics_side else _("Show Lyrics")
 			if (track_object.lyrics == "" and not self.timed_lyrics_ren.generate(track_object)):
 				colour = self.colours.menu_text_disabled
 			return [colour, self.colours.menu_background, line]
 
-		if self.prefs.show_lyrics_side:
-			line = _("Hide Lyrics")
-		else:
-			line = _("Show Lyrics")
+		line = _("Hide Lyrics") if self.prefs.show_lyrics_side else _("Show Lyrics")
 		if (track_object.lyrics == "" and not self.timed_lyrics_ren.generate(track_object)):
 			colour = self.colours.menu_text_disabled
 		return [colour, self.colours.menu_background, line]
@@ -7410,22 +7386,16 @@ class Tauon:
 		if track_object.artist != "":
 			self.lastfm.get_bio(track_object.artist)
 
-	def search_lyrics_deco(self, track_object: TrackClass):
-		if not track_object.lyrics:
-			line_colour = self.colours.menu_text
-		else:
-			line_colour = self.colours.menu_text_disabled
+	def search_lyrics_deco(self, track_object: TrackClass) -> list[list[int] | None]:
+		line_colour = self.colours.menu_text if not track_object.lyrics else self.colours.menu_text_disabled
 
 		return [line_colour, self.colours.menu_background, None]
 
-	def toggle_synced_lyrics(self, tr):
+	def toggle_synced_lyrics(self, tr: TrackClass) -> None:
 		self.prefs.prefer_synced_lyrics ^= True
 
-	def toggle_synced_lyrics_deco(self, track):
-		if self.prefs.prefer_synced_lyrics:
-			text = _("Show static lyrics")
-		else:
-			text = _("Show synced lyrics")
+	def toggle_synced_lyrics_deco(self, track: TrackClass) -> list[list[int] | str | None]:
+		text = _("Show static lyrics") if self.prefs.prefer_synced_lyrics else _("Show synced lyrics")
 		if self.timed_lyrics_ren.generate(track) and track.lyrics:
 			line_colour = self.colours.menu_text
 		else:
@@ -7438,10 +7408,7 @@ class Tauon:
 		return [line_colour, self.colours.menu_background, text]
 
 	def paste_lyrics_deco(self) -> list[list[int] | None]:
-		if sdl3.SDL_HasClipboardText():
-			line_colour = self.colours.menu_text
-		else:
-			line_colour = self.colours.menu_text_disabled
+		line_colour = self.colours.menu_text if sdl3.SDL_HasClipboardText() else self.colours.menu_text_disabled
 
 		return [line_colour, self.colours.menu_background, None]
 
@@ -7449,18 +7416,12 @@ class Tauon:
 		return self.gui.combo_mode and self.prefs.guitar_chords
 
 	def copy_lyrics_deco(self, track_object: TrackClass) -> list[list[int] | None]:
-		if track_object.lyrics:
-			line_colour = self.colours.menu_text
-		else:
-			line_colour = self.colours.menu_text_disabled
+		line_colour = self.colours.menu_text if track_object.lyrics else self.colours.menu_text_disabled
 
 		return [line_colour, self.colours.menu_background, None]
 
-	def clear_lyrics_deco(self, track_object: TrackClass):
-		if track_object.lyrics:
-			line_colour = self.colours.menu_text
-		else:
-			line_colour = self.colours.menu_text_disabled
+	def clear_lyrics_deco(self, track_object: TrackClass) -> list[list[int] | None]:
+		line_colour = self.colours.menu_text if track_object.lyrics else self.colours.menu_text_disabled
 
 		return [line_colour, self.colours.menu_background, None]
 
@@ -7532,7 +7493,7 @@ class Tauon:
 			track_object = self.pctl.master_library[track_object]
 		self.album_art_gen.open_external(track_object)
 
-	def extract_image_deco(self, track_object: TrackClass | int):
+	def extract_image_deco(self, track_object: TrackClass | int) -> list[list[int] | None]:
 		if type(track_object) is int:
 			track_object = self.pctl.master_library[track_object]
 		info = self.album_art_gen.get_info(track_object)
@@ -7540,14 +7501,11 @@ class Tauon:
 		if info is None:
 			return [self.colours.menu_text_disabled, self.colours.menu_background, None]
 
-		if info[0] == 1:
-			line_colour = self.colours.menu_text
-		else:
-			line_colour = self.colours.menu_text_disabled
+		line_colour = self.colours.menu_text if info[0] == 1 else self.colours.menu_text_disabled
 
 		return [line_colour, self.colours.menu_background, None]
 
-	def cycle_image_deco(self, track_object: TrackClass):
+	def cycle_image_deco(self, track_object: TrackClass) -> list[list[int] | None]:
 		info = self.album_art_gen.get_info(track_object)
 
 		if self.pctl.playing_state != 0 and (info is not None and info[1] > 1):
@@ -7562,10 +7520,7 @@ class Tauon:
 			track_object = self.pctl.master_library[track_object]
 		info = self.album_art_gen.get_info(track_object)
 
-		if info is not None and info[1] > 1:
-			line_colour = self.colours.menu_text
-		else:
-			line_colour = self.colours.menu_text_disabled
+		line_colour = self.colours.menu_text if info is not None and info[1] > 1 else self.colours.menu_text_disabled
 
 		return [line_colour, self.colours.menu_background, None]
 
@@ -7579,7 +7534,7 @@ class Tauon:
 			track_object = self.pctl.master_library[track_object]
 		self.album_art_gen.cycle_offset_reverse(track_object)
 
-	def dl_art_deco(self, track_object: TrackClass | int):
+	def dl_art_deco(self, track_object: TrackClass | int) -> list[list[int] | None]:
 		if type(track_object) is int:
 			track_object = self.pctl.master_library[track_object]
 		if not track_object.album or not track_object.artist:
@@ -7896,10 +7851,7 @@ class Tauon:
 				active = True
 				line = _("Paste Spotify Album")
 
-		if active:
-			line_colour = self.colours.menu_text
-		else:
-			line_colour = self.colours.menu_text_disabled
+		line_colour = self.colours.menu_text if active else self.colours.menu_text_disabled
 
 		return [line_colour, self.colours.menu_background, line]
 
@@ -8215,10 +8167,7 @@ class Tauon:
 			perc = are_cue / tracks_in_playlist
 			if perc == 0:
 				perc = 0
-			if 0 < perc < 0.01:
-				perc = "<0.01"
-			else:
-				perc = round(perc, 2)
+			perc = "<0.01" if 0 < perc < 0.01 else round(perc, 2)
 
 			line += str(perc) + "%"
 			line += "\n\n"
@@ -8415,27 +8364,21 @@ class Tauon:
 		self.tree_view_box.clear_target_pl(pl)
 		return None
 
-	def gen_unique_pl_title(self, base: str, extra: str="", start: int = 1) -> str:
+	def gen_unique_pl_title(self, base: str, extra: str = "", start: int = 1) -> str:
 		ex = start
 		title = base
 		while ex < 100:
 			for playlist in self.pctl.multi_playlist:
 				if playlist.title == title:
 					ex += 1
-					if ex == 1:
-						title = base + " (" + extra.rstrip(" ") + ")"
-					else:
-						title = base + " (" + extra + str(ex) + ")"
+					title = base + " (" + extra.rstrip(" ") + ")" if ex == 1 else base + " (" + extra + str(ex) + ")"
 					break
 			else:
 				break
 		return title
 
-	def append_deco(self):
-		if self.pctl.playing_state > 0:
-			line_colour = self.colours.menu_text
-		else:
-			line_colour = self.colours.menu_text_disabled
+	def append_deco(self) -> list[list[int] | str | None]:
+		line_colour = self.colours.menu_text if self.pctl.playing_state > 0 else self.colours.menu_text_disabled
 
 		text = None
 		if self.spot_ctl.coasting:
@@ -8443,7 +8386,7 @@ class Tauon:
 
 		return [line_colour, self.colours.menu_background, text]
 
-	def rescan_deco(self, pl: int):
+	def rescan_deco(self, pl: int) -> list[list[int] | None]:
 		if self.pctl.multi_playlist[pl].last_folder:
 			line_colour = self.colours.menu_text
 		else:
@@ -8452,14 +8395,11 @@ class Tauon:
 		# base = os.path.basename(self.pctl.multi_playlist[pl].last_folder)
 		return [line_colour, self.colours.menu_background, None]
 
-	def regenerate_deco(self, pl: int):
+	def regenerate_deco(self, pl: int) -> list[list[int] | None]:
 		id = self.pctl.pl_to_id(pl)
 		value = self.pctl.gen_codes.get(id)
 
-		if value:
-			line_colour = self.colours.menu_text
-		else:
-			line_colour = self.colours.menu_text_disabled
+		line_colour = self.colours.menu_text if value else self.colours.menu_text_disabled
 
 		return [line_colour, self.colours.menu_background, None]
 
@@ -12860,12 +12800,9 @@ class Tauon:
 			return [120, 90, 245, 255]
 		return [237, 80, 221, 255]
 
-	def new_playlist_deco(self):
+	def new_playlist_deco(self) -> list[list[int] | str | None]:
 		colours = self.colours
-		if self.gui.radio_view:
-			text = _("New Radio List")
-		else:
-			text = _("New Playlist")
+		text = _("New Radio List") if self.gui.radio_view else _("New Playlist")
 		return [self.colours.menu_text, self.colours.menu_background, text]
 
 	def clean_db_show_test(self, _: int) -> bool:
@@ -13064,10 +13001,7 @@ class Tauon:
 		self.pctl.notify_change()
 
 	def queue_deco(self) -> list[list[int] | None]:
-		if len(self.pctl.force_queue) > 0:
-			line_colour = self.colours.menu_text
-		else:
-			line_colour = self.colours.menu_text_disabled
+		line_colour = self.colours.menu_text if len(self.pctl.force_queue) > 0 else self.colours.menu_text_disabled
 		return [line_colour, self.colours.menu_background, None]
 
 	def bass_test(self, _) -> bool:
@@ -14285,10 +14219,7 @@ class Tauon:
 		self.gui.update = 1
 
 	def draw_rating_widget(self, x: int, y: int, n_track: TrackClass, album: bool = False) -> None:
-		if album:
-			rat = self.album_star_store.get_rating(n_track)
-		else:
-			rat = self.star_store.get_rating(n_track.index)
+		rat = self.album_star_store.get_rating(n_track) if album else self.star_store.get_rating(n_track.index)
 
 		rect = (x - round(5 * self.gui.scale), y - round(4 * self.gui.scale), round(80 * self.gui.scale), round(16 * self.gui.scale))
 		self.gui.heart_fields.append(rect)
@@ -14699,12 +14630,9 @@ class Tauon:
 		# bag.cue_list.append(filepath)
 		return None
 
-	def get_album_from_first_track(self, track_position, track_id=None, pl_number=None, pl_id: int | None = None):
+	def get_album_from_first_track(self, track_position: int, track_id: int | None = None, pl_number: int | None = None, pl_id: int | None = None) -> list[int]:
 		if pl_number is None:
-			if pl_id:
-				pl_number = self.pctl.id_to_pl(pl_id)
-			else:
-				pl_number = self.pctl.active_playlist_viewing
+			pl_number = self.pctl.id_to_pl(pl_id) if pl_id else self.pctl.active_playlist_viewing
 
 		playlist = self.pctl.multi_playlist[pl_number].playlist_ids
 
