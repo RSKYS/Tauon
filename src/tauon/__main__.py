@@ -38,7 +38,7 @@ if (install_directory / "debug").is_file():
 	debug = True
 
 log = LogHistoryHandler()
-formatter = logging.Formatter('[%(levelname)s] %(message)s')
+formatter = logging.Formatter("[%(levelname)s] %(message)s")
 log.setFormatter(formatter)
 
 # DEBUG+ to file and std_err
