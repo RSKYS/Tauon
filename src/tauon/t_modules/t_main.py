@@ -46248,7 +46248,7 @@ def main(holder: Holder) -> None:
 
 			if gui.vis == 1:
 				if prefs.backend == 2 or True:
-					if pctl.playing_state == 1 or pctl.playing_state == 3:
+					if pctl.playing_state in (1, 3):
 						# gui.level_update = True
 						while tauon.level_train and tauon.level_train[0][0] < time.time():
 
@@ -46284,12 +46284,12 @@ def main(holder: Holder) -> None:
 						if pctl.playing_time < 1:
 							gui.delay_frame(0.032)
 
-						if pctl.playing_state == 1 or pctl.playing_state == 3:
+						if pctl.playing_state in (1, 3):
 							t = gui.level_decay_timer.hit()
 							decay = 14 * t
 							gui.level_peak[1] -= decay
 							gui.level_peak[0] -= decay
-						elif pctl.playing_state == 0 or pctl.playing_state == 2:
+						elif pctl.playing_state in (0, 2):
 							gui.level_update = True
 							time.sleep(0.016)
 							t = gui.level_decay_timer.hit()
