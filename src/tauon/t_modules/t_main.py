@@ -237,9 +237,7 @@ if sys.platform not in ("win32", "darwin"):
 	except Exception:
 		logging.exception("Failed importing gi Notify 0.7, will try 0.8")
 		gi.require_version("Notify", "0.8")
-	from gi.repository import Notify
-	from gi.repository import GdkPixbuf
-	from gi.repository import GLib
+	from gi.repository import GdkPixbuf, GLib, Notify
 	try:
 		# Pylast needs to be imported AFTER setup_tls() else pyinstaller breaks
 		# TODO(Martin): It's currently not!
@@ -829,6 +827,7 @@ class GuiVar:
 
 class StarStore:
 	"""Functions for reading and setting play counts"""
+
 	def __init__(self, tauon: Tauon, pctl: PlayerCtl) -> None:
 		self.tauon      = tauon
 		self.pctl       = pctl
@@ -1509,6 +1508,7 @@ class LoadClass:
 
 class MOD(Structure):
 	"""Access functions from libopenmpt for scanning tracker files"""
+
 	_fields_ = [("ctl", c_char_p), ("value", c_char_p)]
 
 class GMETrackInfo(Structure):
@@ -1730,7 +1730,7 @@ class PlayerCtl:
 	#	 load_order.playlist = pctl.multi_playlist[pl].uuid_int
 	#	 tauon.load_orders.append(copy.deepcopy(load_order))
 
-	def index_key(self, index: int) -> (list[int | str] | Literal['a']):
+	def index_key(self, index: int) -> (list[int | str] | Literal["a"]):
 		tr = self.master_library[index]
 		s = str(tr.track_number)
 		d = str(tr.disc_number)
@@ -3734,7 +3734,6 @@ class LastFMapi:
 
 	def auth2(self) -> None:
 		"""This is step 2 where the user clicks \"Done\""""
-
 		if self.sg is None:
 			self.show_message(_("You need to log in first"))
 			return
@@ -5411,6 +5410,7 @@ class ThumbTracks:
 
 class Tauon:
 	"""Root class for everything Tauon"""
+
 	def __init__(self, holder: Holder, bag: Bag, gui: GuiVar) -> None:
 		self.bag                          = bag
 		self.mpt                          = bag.mpt
@@ -7291,7 +7291,7 @@ class Tauon:
 			return None
 
 		t = self.lyrics_fetch_timer.get()
-		logging.info(f"Lyric rate limit timer is: {str(t)} / -60")
+		logging.info(f"Lyric rate limit timer is: {t!s} / -60")
 		if t < -40:
 			logging.info("Lets try again later")
 			if not silent:
@@ -7337,7 +7337,7 @@ class Tauon:
 							logging.info(f"Found lyrics from {name}")
 							track_object.lyrics = lyrics
 						if synced:
-							logging.info(f"Found synced lyrics")
+							logging.info("Found synced lyrics")
 							track_object.synced = synced
 						found = True
 						break
@@ -9773,7 +9773,7 @@ class Tauon:
 		return None
 
 	def spot_heart_xmenu_colour(self) -> list[int] | None:
-		if not (self.pctl.playing_state == 1 or self.pctl.playing_state == 2):
+		if self.pctl.playing_state not in (1, 2):
 			return None
 		tr = self.pctl.playing_object()
 		if tr and "spotify-liked" in tr.misc:
@@ -10968,7 +10968,7 @@ class Tauon:
 		self.pctl.advance(rr=True)
 
 	def heart_menu_colour(self) -> list[int] | None:
-		if not (self.pctl.playing_state == 1 or self.pctl.playing_state == 2):
+		if self.pctl.playing_state not in (1, 2):
 			if self.colours.lm:
 				return [255, 150, 180, 255]
 			return None
@@ -11023,7 +11023,7 @@ class Tauon:
 		return [self.colours.menu_text_disabled, self.colours.menu_background, None]
 
 	def show_spot_playing(self) -> None:
-		if self.pctl.playing_state != 0 and self.pctl.playing_state != 3 and not self.spot_ctl.coasting and not self.spot_ctl.playing:
+		if self.pctl.playing_state not in (0, 3) and not self.spot_ctl.coasting and not self.spot_ctl.playing:
 			self.pctl.stop()
 		self.spot_ctl.update(start=True)
 
@@ -11136,7 +11136,7 @@ class Tauon:
 		return None
 
 	def lastfm_menu_test(self, _: int) -> bool:
-		return bool(self.prefs.auto_lfm and self.prefs.last_fm_token is not None or self.prefs.enable_lb or self.prefs.maloja_enable)
+		return bool((self.prefs.auto_lfm and self.prefs.last_fm_token is not None) or self.prefs.enable_lb or self.prefs.maloja_enable)
 
 	def lb_mode(self) -> bool:
 		return self.prefs.enable_lb
@@ -12357,12 +12357,11 @@ class Tauon:
 			if gui.rsp and prefs.side_panel_layout == 0:
 				if prefs.album_mode:
 					pass
-				else:
-					if not gui.art_unlock_ratio:
-						if gui.rsp_full_lock and not gui.side_drag:
-							gui.rspw = window_size[0]
+				elif not gui.art_unlock_ratio:
+					if gui.rsp_full_lock and not gui.side_drag:
+						gui.rspw = window_size[0]
 
-						gui.rspw = min(gui.rspw, window_size[1] - gui.panelY - gui.panelBY)
+					gui.rspw = min(gui.rspw, window_size[1] - gui.panelY - gui.panelBY)
 
 			# Determine how wide the playlist need to be
 			gui.plw = window_size[0]
@@ -12679,11 +12678,10 @@ class Tauon:
 		if self.system == "Windows" or self.msys:
 			line = r"explorer " + self.prefs.encoder_output.replace("/", "\\")
 			subprocess.Popen(line)
+		elif self.macos:
+			subprocess.Popen(["open", self.prefs.encoder_output])
 		else:
-			if self.macos:
-				subprocess.Popen(["open", self.prefs.encoder_output])
-			else:
-				subprocess.Popen(["xdg-open", self.prefs.encoder_output])
+			subprocess.Popen(["xdg-open", self.prefs.encoder_output])
 
 	def g_open_encode_out(self, _a, _b, _c) -> None:
 		self.open_encode_out()
@@ -14269,14 +14267,13 @@ class Tauon:
 					self.gui.star_half_row_icon.render(xx, y, fg2)
 				else:
 					self.gui.star_row_icon.render(xx, y, fg2)
+			elif rat - 1 < ss * 2:
+				self.gui.star_row_icon.render(xx, y, bg)
+			elif rat - 1 == ss * 2:
+				self.gui.star_row_icon.render(xx, y, bg)
+				self.gui.star_half_row_icon.render(xx, y, fg)
 			else:
-				if rat - 1 < ss * 2:
-					self.gui.star_row_icon.render(xx, y, bg)
-				elif rat - 1 == ss * 2:
-					self.gui.star_row_icon.render(xx, y, bg)
-					self.gui.star_half_row_icon.render(xx, y, fg)
-				else:
-					self.gui.star_row_icon.render(xx, y, fg)
+				self.gui.star_row_icon.render(xx, y, fg)
 
 	def standard_view_deco(self):
 		if self.prefs.album_mode or self.gui.combo_mode or not self.gui.rsp:
@@ -14659,7 +14656,7 @@ class Tauon:
 	def love_deco(self) -> list[list[int] | str | None]:
 		if self.love(False):
 			return [self.colours.menu_text, self.colours.menu_background, _("Un-Love Track")]
-		if self.pctl.playing_state == 1 or self.pctl.playing_state == 2:
+		if self.pctl.playing_state in (1, 2):
 			return [self.colours.menu_text, self.colours.menu_background, _("Love Track")]
 		return [self.colours.menu_text_disabled, self.colours.menu_background, _("Love Track")]
 
@@ -17426,7 +17423,6 @@ class Tauon:
 
 	def drop_file(self, target: str) -> None:
 		"""Deprecated, move to individual UI components"""
-
 		if self.system != "windows":
 			gmp = get_global_mouse()
 			gwp = get_window_position(self.t_window)
@@ -20266,7 +20262,6 @@ class AlbumArt:
 
 	def fast_display(self, index, location, box, source: list[tuple[int, str]], offset) -> int:
 		"""Renders cached image only by given size for faster performance"""
-
 		found_unit = None
 		max_h = 0
 
@@ -28354,7 +28349,7 @@ class MiniMode:
 
 	def render(self):
 		# We only set seek_r and seek_w if track is currently on, but use it anyway later, so make sure it exists
-		if 'seek_r' not in locals():
+		if "seek_r" not in locals():
 			seek_r = [0, 0, 0, 0]
 			seek_w = 0
 
@@ -28730,7 +28725,7 @@ class MiniMode3:
 
 	def render(self):
 		# We only set seek_r and seek_w if track is currently on, but use it anyway later, so make sure it exists
-		if 'seek_r' not in locals():
+		if "seek_r" not in locals():
 			seek_r = [0, 0, 0, 0]
 			seek_w = 0
 			volume_r = [0, 0, 0, 0]
@@ -35064,12 +35059,11 @@ class Showcase:
 			if self.gui.force_showcase_index >= 0:
 				index = self.gui.force_showcase_index
 				track = self.pctl.master_library[index]
+			elif self.pctl.playing_state == 3:
+				track = self.tauon.radiobox.dummy_track
 			else:
-				if self.pctl.playing_state == 3:
-					track = self.tauon.radiobox.dummy_track
-				else:
-					index = self.pctl.track_queue[self.pctl.queue_step]
-					track = self.pctl.master_library[index]
+				index = self.pctl.track_queue[self.pctl.queue_step]
+				track = self.pctl.master_library[index]
 
 			if not hide_art:
 				# Draw frame around art box
@@ -35267,6 +35261,7 @@ class Showcase:
 
 class ColourPulse2:
 	"""Animates colour between two colours"""
+
 	def __init__(self, tauon: Tauon) -> None:
 		self.gui = tauon.gui
 		self.timer = Timer()
@@ -36090,6 +36085,7 @@ class XcursorImage(ctypes.Structure):
 @dataclass
 class Directories:
 	"""Hold directories"""
+
 	install_directory:      Path
 	svg_directory:          Path
 	asset_directory:        Path
@@ -36111,6 +36107,7 @@ class Directories:
 @dataclass
 class Bag:
 	"""Holder object for all configs"""
+
 	mpt:                     CDLL | None
 	gme:                     CDLL | None
 	cf:                      Config
@@ -36194,7 +36191,7 @@ def is_module_loaded(module_name: str) -> bool:
 
 def get_cert_path(holder: Holder) -> str:
 	if holder.pyinstaller_mode:
-		return os.path.join(sys._MEIPASS, 'certifi', 'cacert.pem')
+		return os.path.join(sys._MEIPASS, "certifi", "cacert.pem")
 	# Running as script
 	return certifi.where()
 
@@ -36948,8 +36945,7 @@ def auto_scale(bag: Bag) -> None:
 	if old != prefs.scale_want:
 		logging.info(f"Using UI scale: {prefs.scale_want}")
 
-	if prefs.scale_want < 0.5:
-		prefs.scale_want = 0.5
+	prefs.scale_want = max(prefs.scale_want, 0.5)
 
 	#if bag.window_size[0] < (560 * prefs.scale_want) * 0.9 or bag.window_size[1] < (330 * prefs.scale_want) * 0.9:
 	#	logging.info("Window overscale!")
@@ -37295,18 +37291,17 @@ def parse_template2(string: str, track_object: TrackClass, strict: bool = False)
 			else:
 				out += c
 
+		elif c == ">":
+			test = re_template_word(temp, track_object)
+			if strict:
+				assert test
+			out += test
+
+			mode = 0
+			temp = ""
+
 		else:
-			if c == ">":
-				test = re_template_word(temp, track_object)
-				if strict:
-					assert test
-				out += test
-
-				mode = 0
-				temp = ""
-
-			else:
-				temp += c
+			temp += c
 
 	if "<und" in string:
 		out = out.replace(" ", "_")
@@ -41905,9 +41900,7 @@ def main(holder: Holder) -> None:
 				elif event.key.key == sdl3.SDLK_X:
 					inp.key_x_press = True
 
-				if event.key.key == (sdl3.SDLK_RETURN or sdl3.SDLK_RETURN2) and len(gui.editline) == 0:
-					inp.key_return_press = True
-				elif event.key.key == sdl3.SDLK_KP_ENTER and len(gui.editline) == 0:
+				if (event.key.key == (sdl3.SDLK_RETURN or sdl3.SDLK_RETURN2) and len(gui.editline) == 0) or (event.key.key == sdl3.SDLK_KP_ENTER and len(gui.editline) == 0):
 					inp.key_return_press = True
 				elif event.key.key == sdl3.SDLK_TAB:
 					inp.key_tab_press = True
@@ -44429,17 +44422,16 @@ def main(holder: Holder) -> None:
 											target_track)):
 									prefs.show_lyrics_side ^= True
 									prefs.side_panel_layout = 1
-								else:
-									if prefs.side_panel_layout == 0:
-										if (target_track and target_track.lyrics and not prefs.show_lyrics_side) or \
-												(prefs.prefer_synced_lyrics and target_track is not None and tauon.timed_lyrics_ren.generate(
-													target_track)):
-											prefs.show_lyrics_side = True
-											prefs.side_panel_layout = 1
-										else:
-											prefs.side_panel_layout = 1
+								elif prefs.side_panel_layout == 0:
+									if (target_track and target_track.lyrics and not prefs.show_lyrics_side) or \
+											(prefs.prefer_synced_lyrics and target_track is not None and tauon.timed_lyrics_ren.generate(
+												target_track)):
+										prefs.show_lyrics_side = True
+										prefs.side_panel_layout = 1
 									else:
-										prefs.side_panel_layout = 0
+										prefs.side_panel_layout = 1
+								else:
+									prefs.side_panel_layout = 0
 
 						if prefs.show_lyrics_side and prefs.prefer_synced_lyrics and target_track is not None and tauon.timed_lyrics_ren.generate(
 								target_track):
@@ -46328,19 +46320,18 @@ def main(holder: Holder) -> None:
 						else:
 							cc = colorsys.hls_to_rgb(0.3 - (t * 0.03), 0.4, 0.7 + (t * 0.02))
 							cc = (int(cc[0] * 255), int(cc[1] * 255), int(cc[2] * 255), 255)
+					elif t < 7:
+						cc = colours.level_green
+						if met is False:
+							cc = colours.level_1_bg
+					elif t < 10:
+						cc = colours.level_yellow
+						if met is False:
+							cc = colours.level_2_bg
 					else:
-						if t < 7:
-							cc = colours.level_green
-							if met is False:
-								cc = colours.level_1_bg
-						elif t < 10:
-							cc = colours.level_yellow
-							if met is False:
-								cc = colours.level_2_bg
-						else:
-							cc = colours.level_red
-							if met is False:
-								cc = colours.level_3_bg
+						cc = colours.level_red
+						if met is False:
+							cc = colours.level_3_bg
 					if gui.level > 0 and pctl.playing_state > 0:
 						pass
 					ddt.rect_a(((x - (w * t) - (s * t)), y), (w, w), cc)
@@ -46382,19 +46373,18 @@ def main(holder: Holder) -> None:
 							cc = colorsys.hls_to_rgb(0.3 - (t * 0.03), 0.4, 0.7 + (t * 0.02))
 							cc = (int(cc[0] * 255), int(cc[1] * 255), int(cc[2] * 255), 255)
 
+					elif t < 7:
+						cc = colours.level_green
+						if met is False:
+							cc = colours.level_1_bg
+					elif t < 10:
+						cc = colours.level_yellow
+						if met is False:
+							cc = colours.level_2_bg
 					else:
-						if t < 7:
-							cc = colours.level_green
-							if met is False:
-								cc = colours.level_1_bg
-						elif t < 10:
-							cc = colours.level_yellow
-							if met is False:
-								cc = colours.level_2_bg
-						else:
-							cc = colours.level_red
-							if met is False:
-								cc = colours.level_3_bg
+						cc = colours.level_red
+						if met is False:
+							cc = colours.level_3_bg
 
 					if gui.level > 0 and pctl.playing_state > 0:
 						pass
@@ -46496,7 +46486,7 @@ def main(holder: Holder) -> None:
 	if bag.should_save_state:
 		with (user_directory / "star.p.backup").open("wb") as file:
 			pickle.dump(tauon.star_store.db, file, protocol=pickle.HIGHEST_PROTOCOL)
-		with (user_directory / f"star.p.backup{str(date.month)}").open("wb") as file:
+		with (user_directory / f"star.p.backup{date.month!s}").open("wb") as file:
 			pickle.dump(tauon.star_store.db, file, protocol=pickle.HIGHEST_PROTOCOL)
 
 	if tauon.stream_proxy and tauon.stream_proxy.download_running:
