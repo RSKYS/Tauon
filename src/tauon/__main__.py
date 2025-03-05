@@ -281,7 +281,7 @@ if d == "GNOME": #and os.environ.get("XDG_SESSION_TYPE") and os.environ.get("XDG
 		logging.exception("Failed to set cursor")
 sdl3.SDL_Init(sdl3.SDL_INIT_VIDEO | sdl3.SDL_INIT_EVENTS)
 
-err = sdl3.SDL_GetError()
+err = bytes(sdl3.SDL_GetError())
 if err and "GLX" in err.decode():
 	logging.error(f"SDL init error: {err.decode()}")
 	sdl3.SDL_ShowSimpleMessageBox(
@@ -311,7 +311,7 @@ if "--tray" in sys.argv:
 	flags |= sdl3.SDL_WINDOW_HIDDEN
 
 
-t_window = sdl3.SDL_CreateWindow(  # todo use SDL_CreateWindowAndRenderer()
+t_window = sdl3.SDL_CreateWindow(  # TODO(Taiko): use SDL_CreateWindowAndRenderer()
 	window_title,
 	# o_x, o_y,
 	logical_size[0], logical_size[1],

@@ -21080,7 +21080,7 @@ class AlbumArt:
 
 		except Exception:
 			logging.exception("Image load error")
-			logging.error("-- Associated track: " + track.fullpath)
+			logging.error(f"-- Associated track: {track.fullpath}")
 
 			self.current_wu = None
 			try:
@@ -42235,7 +42235,7 @@ def main(holder: Holder) -> None:
 			# TODO(Martin): Check if commenting this out is the correct thing to do
 			#if inp.mouse_click or inp.right_click or inp.mouse_up:
 			#	last_click_location = copy.deepcopy(inp.click_location)
-			#	click_location = copy.deepcopy(inp.inp.mouse_position)
+			#	click_location = copy.deepcopy(inp.mouse_position)
 
 			if inp.key_focused != 0:
 				keymaps.hits.clear()
@@ -42373,7 +42373,6 @@ def main(holder: Holder) -> None:
 
 			# Disable keys for text cursor control
 			if not gui.rename_folder_box and not tauon.rename_track_box.active and not gui.rename_playlist_box and not radiobox.active and not pref_box.enabled and not tauon.trans_edit_box.active:
-
 				if not gui.quick_search_mode and not tauon.search_over.active:
 					if prefs.album_mode and gui.album_tab_mode \
 							and not inp.key_ctrl_down \
@@ -42531,7 +42530,6 @@ def main(holder: Holder) -> None:
 					gui.update += 1
 
 				if keymaps.test("cycle-layouts"):
-
 					if tauon.view_box.tracks():
 						tauon.view_box.side(True)
 					elif tauon.view_box.side():
@@ -42542,7 +42540,6 @@ def main(holder: Holder) -> None:
 						tauon.view_box.tracks(True)
 
 				if keymaps.test("cycle-layouts-reverse"):
-
 					if tauon.view_box.tracks():
 						tauon.view_box.lyrics(True)
 					elif tauon.view_box.lyrics():
