@@ -34071,154 +34071,172 @@ def get_album_art_url(tr: TrackClass):
 	return None
 
 def discord_loop() -> None:
-	prefs.discord_active = True
+    prefs.discord_active = True
 
-	try:
-		if not pctl.playing_ready():
-			return
-		asyncio.set_event_loop(asyncio.new_event_loop())
+    try:
+        if not pctl.playing_ready():
+            return
+        asyncio.set_event_loop(asyncio.new_event_loop())
 
-		# logging.info("Attempting to connect to Discord...")
-		client_id = "954253873160286278"
-		RPC = Presence(client_id)
-		RPC.connect()
+        # logging.info("Attempting to connect to Discord...")
+        client_id = "954253873160286278"
+        RPC = Presence(client_id)
+        RPC.connect()
 
-		logging.info("Discord RPC connection successful.")
-		time.sleep(1)
-		start_time = time.time()
-		idle_time = Timer()
+        logging.info("Discord RPC connection successful.")
+        time.sleep(1)
+        start_time = time.time()
+        idle_time = Timer()
 
-		state = 0
-		index = -1
-		br = False
-		gui.discord_status = "Connected"
-		gui.update += 1
-		current_state = 0
+        state = 0
+        index = -1
+        br = False
+        gui.discord_status = "Connected"
+        gui.update += 1
+        current_state = 0
 
-		while True:
-			while True:
+        while True:
+            while True:
 
-				current_index = pctl.playing_object().index
-				if pctl.playing_state == 3:
-					current_index = radiobox.song_key
+                current_index = pctl.playing_object().index
+                if pctl.playing_state == 3:
+                    current_index = radiobox.song_key
 
-				if current_state == 0 and pctl.playing_state in (1, 3):
-					current_state = 1
-				elif current_state == 1 and pctl.playing_state not in (1, 3):
-					current_state = 0
-					idle_time.set()
+                if current_state == 0 and pctl.playing_state in (1, 3):
+                    current_state = 1
+                elif current_state == 1 and pctl.playing_state not in (1, 3):
+                    current_state = 0
+                    idle_time.set()
 
-				if state != current_state or index != current_index:
-					if pctl.a_time > 4 or current_state != 1:
-						state = current_state
-						index = current_index
+                if state != current_state or index != current_index:
+                    if pctl.a_time > 4 or current_state != 1:
+                        state = current_state
+                        index = current_index
 
-						break
+                        break
 
-				# Timesync
-				if abs(start_time - (time.time() - pctl.playing_time)) > 1:
-					start_time = time.time() - pctl.playing_time
-				else:
-					break
+                # Timesync
+                if abs(start_time - (time.time() - pctl.playing_time)) > 1:
+                    start_time = time.time() - pctl.playing_time
+                else:
+                    break
 
-				if current_state == 0 and idle_time.get() > 13:
-					logging.info("Pause discord RPC...")
-					gui.discord_status = "Idle"
-					RPC.clear(pid)
-					# RPC.close()
+                if current_state == 0 and idle_time.get() > 13:
+                    logging.info("Pause discord RPC...")
+                    gui.discord_status = "Idle"
+                    RPC.clear(pid)
+                    # RPC.close()
 
-					while True:
-						if prefs.disconnect_discord:
-							break
-						if pctl.playing_state == 1:
-							logging.info("Reconnect discord...")
-							RPC.connect()
-							gui.discord_status = "Connected"
-							break
-						time.sleep(2)
+                    while True:
+                        if prefs.disconnect_discord:
+                            break
+                        if pctl.playing_state == 1:
+                            logging.info("Reconnect discord...")
+                            RPC.connect()
+                            gui.discord_status = "Connected"
+                            break
+                        time.sleep(1)
 
-					if not prefs.disconnect_discord:
-						continue
+                    if not prefs.disconnect_discord:
+                        continue
 
-				time.sleep(2)
+                time.sleep(1)
 
-				if prefs.disconnect_discord:
-					RPC.clear(pid)
-					RPC.close()
-					prefs.disconnect_discord = False
-					gui.discord_status = "Not connected"
-					br = True
-					break
+                if prefs.disconnect_discord:
+                    RPC.clear(pid)
+                    RPC.close()
+                    prefs.disconnect_discord = False
+                    gui.discord_status = "Not connected"
+                    br = True
+                    break
 
-			if br:
-				break
+            if br:
+                break
 
-			title = _("Unknown Track")
-			tr = pctl.playing_object()
-			if tr.artist != "" and tr.title != "":
-				title = tr.title + " | " + tr.artist
-				if len(title) > 150:
-					title = _("Unknown Track")
+            title = _("Unknown Track")
+            tr = pctl.playing_object()
+            if tr.title != "":
+                title = tr.title
+                if len(title) > 150:
+                    title = _("Unknown Track")
 
-			if tr.album:
-				album = tr.album
-			else:
-				album = _("Unknown Album")
-				if pctl.playing_state == 3:
-					album = radiobox.loaded_station["title"]
+            if tr.artist != "":
+                artist = tr.artist
+            else:
+                artist = _("Unknown Artist")
 
-			if len(album) == 1:
-				album += " "
+            album = tr.album
+            if not album:
+                if pctl.playing_state == 3:
+                    album = radiobox.loaded_station["title"]
+                else:
+                    album = None
 
-			end_time = start_time + tr.length
+            if album and len(album) == 1:
+                album += " "
 
-			if state == 1:
-				#logging.info("PLAYING: " + title)
-				#logging.info(start_time)
-				url = get_album_art_url(pctl.playing_object())
+            end_time = start_time + tr.length
 
-				large_image = "tauon-standard"
-				small_image = None
-				if url:
-					large_image = url
-					small_image = "tauon-standard"
-				RPC.update(
-					activity_type = ActivityType.LISTENING,
-					pid=pid,
-					state=album,
-					details=title,
-					start=int(start_time),
-					end=int(end_time),
-					large_image=large_image,
-					small_image=small_image)
+            if state == 1:
+                #logging.info("PLAYING: " + title)
+                #logging.info(start_time)
+                url = get_album_art_url(pctl.playing_object())
 
-			else:
-				#logging.info("Discord RPC - Stop")
-				RPC.update(
-					activity_type = ActivityType.LISTENING,
-					pid=pid,
-					state="Idle",
-					large_image="tauon-standard")
+                large_image = "tauon-standard"
+                small_image = None
+                if url:
+                    large_image = url
+                    small_image = "tauon-standard"
 
-			time.sleep(5)
+                if album:
+                    RPC.update(
+                        activity_type = ActivityType.LISTENING,
+                        pid=pid,
+                        state=artist,
+                        details=title,
+                        start=int(start_time),
+                        end=int(end_time),
+                        large_text=album,
+                        large_image=large_image,
+                        small_image=small_image )
+                else:
+                    RPC.update(
+                        activity_type = ActivityType.LISTENING,
+                        pid=pid,
+                        state=artist,
+                        details=title,
+                        start=int(start_time),
+                        end=int(end_time),
+                        large_image=large_image,
+                        small_image=small_image )
 
-			if prefs.disconnect_discord:
-				RPC.clear(pid)
-				RPC.close()
-				prefs.disconnect_discord = False
-				break
+            else:
+                #logging.info("Discord RPC - Stop")
+                RPC.update(
+                    activity_type = ActivityType.LISTENING,
+                    pid=pid,
+                    state="Idle",
+                    large_image="tauon-standard")
 
-	except Exception:
-		logging.exception("Error connecting to Discord - is Discord running?")
-		# show_message(_("Error connecting to Discord", mode='error')
-		gui.discord_status = _("Error - Discord not running?")
-		prefs.disconnect_discord = False
+            time.sleep(2)
 
-	finally:
-		loop = asyncio.get_event_loop()
-		if not loop.is_closed():
-			loop.close()
-		prefs.discord_active = False
+            if prefs.disconnect_discord:
+                RPC.clear(pid)
+                RPC.close()
+                prefs.disconnect_discord = False
+                break
+
+    except Exception:
+        logging.exception("Error connecting to Discord - is Discord running?")
+        # show_message(_("Error connecting to Discord", mode='error')
+        gui.discord_status = _("Error - Discord not running?")
+        prefs.disconnect_discord = False
+
+    finally:
+        loop = asyncio.get_event_loop()
+        if not loop.is_closed():
+            loop.close()
+        prefs.discord_active = False
 
 def hit_discord() -> None:
 	if prefs.discord_enable and prefs.discord_allow and not prefs.discord_active:
