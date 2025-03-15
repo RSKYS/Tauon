@@ -34170,20 +34170,29 @@ def discord_loop() -> None:
 
 			title = _("Unknown Track")
 			tr = pctl.playing_object()
-			if tr.artist != "" and tr.title != "":
-				title = tr.title + " | " + tr.artist
+			if tr.title != "":
+				title = tr.title
 				if len(title) > 150:
 					title = _("Unknown Track")
 
-			if tr.album:
-				album = tr.album
+			if tr.artist != "":
+				artist = tr.artist
 			else:
-				album = _("Unknown Album")
+				artist = _("Unknown Artist")
+
+			album = None if title.lower() == tr.album.lower() \
+				else tr.album
+
+			if not album:
 				if pctl.playing_state == 3:
 					album = radiobox.loaded_station["title"]
+				else:
+					album = None
 
-			if len(album) == 1:
+			if album and len(album) == 1:
 				album += " "
+
+			end_time = start_time + tr.length
 
 			if state == 1:
 				#logging.info("PLAYING: " + title)
@@ -34195,17 +34204,33 @@ def discord_loop() -> None:
 				if url:
 					large_image = url
 					small_image = "tauon-standard"
-				RPC.update(
-					pid=pid,
-					state=album,
-					details=title,
-					start=int(start_time),
-					large_image=large_image,
-					small_image=small_image)
+
+				if album:
+					RPC.update(
+						activity_type = ActivityType.LISTENING,
+						pid=pid,
+						state=artist,
+						details=title,
+						start=int(start_time),
+						end=int(end_time),
+						large_text=album,
+						large_image=large_image,
+						small_image=small_image )
+				else:
+					RPC.update(
+						activity_type = ActivityType.LISTENING,
+						pid=pid,
+						state=artist,
+						details=title,
+						start=int(start_time),
+						end=int(end_time),
+						large_image=large_image,
+						small_image=small_image )
 
 			else:
 				#logging.info("Discord RPC - Stop")
 				RPC.update(
+					activity_type = ActivityType.LISTENING,
 					pid=pid,
 					state="Idle",
 					large_image="tauon-standard")
